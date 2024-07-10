@@ -9,25 +9,33 @@ module RuboCop
     # This auto-corrects method order
     class OrderedMethodsCorrector
       include QualifierNodeMatchers
+      include RangeHelp
 
       # @param cop_config ::RuboCop::Config
-      def initialize(comment_locations, siblings, cop_config)
-        @comment_locations = comment_locations
+      def initialize(processed_source, siblings, cop_config)
+        @processed_source = processed_source
         @siblings = siblings
         @cop_config = cop_config
       end
 
-      def correct(node, previous_node)
+      def correct(node, previous_node, corrector)
         AliasMethodOrderVerifier.verify!(node, previous_node)
-        current_range = join_surroundings(node)
-        previous_range = join_surroundings(previous_node)
-        lambda do |corrector|
-          corrector.replace(current_range, previous_range.source)
-          corrector.replace(previous_range, current_range.source)
-        end
+        current_range = node_range(node)
+        previous_range = node_range(previous_node)
+
+        corrector.swap(current_range, previous_range)
       end
 
       private
+
+      def node_range(node)
+        buffer = @processed_source.buffer
+        begin_pos = range_by_whole_lines(join_surroundings(node)).begin_pos
+        end_line = buffer.line_for_position(join_surroundings(node).end_pos)
+        end_pos = range_by_whole_lines(join_surroundings(node),
+                                       include_final_newline: true).end_pos
+        Parser::Source::Range.new(buffer, begin_pos, end_pos)
+      end
 
       def find_last_qualifier_index(node)
         preceding_qualifier_index = node.sibling_index
@@ -51,7 +59,7 @@ module RuboCop
       # @param source_range Parser::Source::Range
       # @return Parser::Source::Range
       def join_comments(node, source_range)
-        @comment_locations[node.loc].each do |comment|
+        @processed_source.ast_with_comments[node].each do |comment|
           source_range = source_range.join(comment.loc.expression)
         end
         source_range
