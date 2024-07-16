@@ -252,13 +252,13 @@ RSpec.describe RuboCop::Cop::Layout::OrderedMethods do
       # Comment
       # class_a
       public_class_method :class_a
-
       # Long
       # Preceding
       # Comment
       # class_b
       def self.class_b; end
       private_class_method :class_b
+
 
       # Long
       # Preceding
@@ -272,7 +272,6 @@ RSpec.describe RuboCop::Cop::Layout::OrderedMethods do
       private :instance_a
       protected :instance_a
       public :instance_a
-
       # Preceding comment for instance_b
       def instance_b; end
       # Long
@@ -284,6 +283,7 @@ RSpec.describe RuboCop::Cop::Layout::OrderedMethods do
       private :instance_b
       protected :instance_b
       public :instance_b
+
     RUBY
   end
 
@@ -298,10 +298,10 @@ RSpec.describe RuboCop::Cop::Layout::OrderedMethods do
 
     expect(autocorrect_source_file(source)).to eq(<<-RUBY)
       def method_a; end
-
       def method_b; end
       alias_method :method_from_parent_class_orig, :method_from_parent_class
       alias_method :method_from_parent_class, :method_b
+
     RUBY
   end
 
@@ -355,11 +355,11 @@ RSpec.describe RuboCop::Cop::Layout::OrderedMethods do
           sig { params(id: ::String).returns(::Array) }
           def self.a(id)
           end
-
           # Comment b
           sig { params(id: ::String).returns(::Array) }
           def self.b(id)
           end
+
         end
       RUBY
     end
@@ -388,10 +388,10 @@ RSpec.describe RuboCop::Cop::Layout::OrderedMethods do
             x.to_s
           end
           alias_method :a2, :a
-          # Comment a
-          sig { params(x: Integer).returns(String) }
           # Comment b
           def b; end
+          # Comment a
+          sig { params(x: Integer).returns(String) }
         end
       RUBY
     end

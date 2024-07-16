@@ -23,7 +23,8 @@ module RuboCop
         current_range = node_range(node)
         previous_range = node_range(previous_node)
 
-        corrector.swap(current_range, previous_range)
+        corrector.insert_before(previous_range, current_range.source)
+        corrector.remove(current_range)
       end
 
       private
